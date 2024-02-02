@@ -166,7 +166,7 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                 'CECHA_DOD_Opis': self.product.description, # Opis
                 'CECHA_DOD_Dlugi_Opis': self.product.long_description, # Dlugi opis
                 'Dzial towarowy_1': 'Chemia budowlana', # tow1
-                'Dzial towarowy_2': 'Pallmann', # tow2
+                'Dzial towarowy_2': 'Uzin', # tow2
                 'Dzial towarowy_3': self.product.dzialtow3, # tow3
                 'Dzial towarowy_4': self.product.dzialtow4, # tow4
                 'CECHA_DOD_Karta_Techniczna': self.product.technical_card, # Karta techniczna
@@ -185,7 +185,7 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                 'CECHA_DOD_Opis': self.product.description, # Opis
                 'CECHA_DOD_Dlugi_Opis': self.product.long_description, # Dlugi opis
                 'Dzial towarowy_1': 'Chemia budowlana', # tow1
-                'Dzial towarowy_2': 'Pallmann', # tow2
+                'Dzial towarowy_2': 'Uzin', # tow2
                 'Dzial towarowy_3': self.product.dzialtow3, # tow3
                 'Dzial towarowy_4': self.product.dzialtow4, # tow4
                 'CECHA_DOD_Karta_Techniczna': self.product.technical_card, # Karta techniczna
