@@ -16,3 +16,5 @@ pip install re
 ```
 
 Aby uruchomić otworzyć cmd w tej lokalizacji wpisać: python main.py
+
+Następna aktualizacja dostępna ok. 10:00
