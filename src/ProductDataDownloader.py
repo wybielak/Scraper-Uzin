@@ -10,16 +10,19 @@ import datetime
 from src.Product import Product
 
 class ProductDataDownloader: # SECTION klasa do scrapowania stron
-                             # w obecnej konfiguracji scrapuje www.remmers.pl
+                             # w obecnej konfiguracji scrapuje pl.uzin.com
     def __init__(self):
         self.product = Product()
         self.labels = [
-            'Kod producenta',
+            'Kod towaru',
             'Nazwa towaru',
             'Nazwa dodatkowa',
+            'Archiwalny',
+            'EAN',
+            'EAN domyslny',
+            'Kod producenta',
             'Jm.',
             'Opis towaru',
-            'CECHA_DOD_Dlugi_Opis',
             'Dzial towarowy_1',
             'Dzial towarowy_2',
             'Dzial towarowy_3',
@@ -47,6 +50,22 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
 
         self.product.name_soup = self.product.soup.find('div', class_="productsDetailInner")
 
+    def clearPolishLetters(self, text):
+        letters = {
+            'ą': 'a', 'ć': 'c', 'ę': 'e',
+            'ł': 'l', 'ń': 'n', 'ó': 'o',
+            'ś': 's', 'ż': 'z', 'ź': 'z'
+        }
+        
+        cleared = ""
+        
+        for char in text:
+            if char.lower() in letters:
+                cleared += letters[char.lower()]
+            else:
+                cleared += char
+        return cleared
+
     def getCharacteristics(self): # ANCHOR ustawianie podstawowych cech produktu
         # NOTE nazwa
         self.product.name = self.product.name_soup.find('h2').text
@@ -67,9 +86,12 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
         else:
             self.product.description = ""
 
-        # NOTE opis dlugi
+        additional_description = ''
+
         if self.product.soup.find('section', id = 'product-application'):
-            self.product.long_description += self.product.soup.find('section', id = 'product-application').prettify()
+            additional_description = self.product.soup.find('section', id = 'product-application')
+
+            self.product.description = f'{self.product.description} {additional_description}'
 
         # NOTE zdjecie
         self.product.photo = self.product.soup.find('div', class_='productImage').get("style")
@@ -117,6 +139,8 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
             key = quality.find('th').text.strip().replace(' ','_').replace('.','').replace(':','')
             value = quality.find('td').text.strip()
 
+            key = self.clearPolishLetters(key)
+
             self.product.qualities["CECHA_DOD_"+key] = value.replace('²','2').replace('°', 'st').replace('Ø','fi')
             self.quality_labels["CECHA_DOD_"+key] = ''
 
@@ -158,13 +182,25 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                 else:
                     name_pt_tmp = self.product.name
 
+                name_pt_tmp = name_pt_tmp.replace('Ø', 'fi').replace('²','2').replace('°', 'st').replace('|',' ').strip()
+                self.product.additional_name = self.product.additional_name.replace('Ø', 'fi').replace('²','2').replace('°', 'st').replace('|',' ').strip()
+
+                if 'UZIN' not in name_pt_tmp[:5]:
+                    name_pt_tmp = f'UZIN {name_pt_tmp}'
+
+                if self.clearPolishLetters(name_pt_tmp[5:].lower()) in self.clearPolishLetters(self.product.additional_name.lower()):
+                    self.product.additional_name = self.clearPolishLetters(self.product.additional_name.lower()).replace(self.clearPolishLetters(name_pt_tmp[5:].lower()), '')
+
                 self.queue.append({
-                'Kod producenta': lst[4], # Kod producenta
-                'Nazwa towaru': name_pt_tmp.replace('Ø', 'fi').replace('\xf8', 'fi'), # Nazwa towaru
-                'Nazwa dodatkowa': self.product.additional_name, # Nazwa dodatkowa
+                'Kod towaru': f'UZIN{lst[4].strip()}', # Kod towaru
+                'Nazwa towaru': name_pt_tmp[:41], # Nazwa towaru
+                'Nazwa dodatkowa': name_pt_tmp[41:] + self.product.additional_name, # Nazwa dodatkowa
+                'Archiwalny': '0',
+                'EAN': '', # Na chwilę obecną uzin nie ma EAN na stronie
+                'EAN domyslny': '0',
+                'Kod producenta': lst[4].strip(), # Kod producenta
                 'Jm.': 'szt', # Jm.
-                'CECHA_DOD_Opis': self.product.description, # Opis
-                'CECHA_DOD_Dlugi_Opis': self.product.long_description, # Dlugi opis
+                'Opis towaru': self.product.description.replace('Ø', 'fi').replace('²','2').replace('°', 'st'), # Opis
                 'Dzial towarowy_1': 'Chemia budowlana', # tow1
                 'Dzial towarowy_2': 'Uzin', # tow2
                 'Dzial towarowy_3': self.product.dzialtow3, # tow3
@@ -178,12 +214,15 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
         
         elif len(self.product.size_code_list) == 0: # NOTE Zapis produktu jeśli znaleziono tylko jeden wariant wagowy
             self.queue.append({
-                'Kod producenta': '', # Kod producenta
-                'Nazwa towaru': self.product.name, # Nazwa towaru
+                'Kod towaru': '', # Kod towaru
+                'Nazwa towaru': self.product.name.replace('Ø', 'fi').replace('²','2').replace('°', 'st'), # Nazwa towaru
                 'Nazwa dodatkowa': self.product.additional_name, # Nazwa dodatkowa
+                'Archiwalny': '1', # Jak produkt nie ma kodu producenta to od razu leci do archiwalnych
+                'EAN': '',
+                'EAN domyslny': '0',
+                'Kod producenta': '', # Kod producenta
                 'Jm.': 'szt', # Jm.
-                'CECHA_DOD_Opis': self.product.description, # Opis
-                'CECHA_DOD_Dlugi_Opis': self.product.long_description, # Dlugi opis
+                'Opis towaru': self.product.description.replace('Ø', 'fi').replace('²','2').replace('°', 'st'), # Opis
                 'Dzial towarowy_1': 'Chemia budowlana', # tow1
                 'Dzial towarowy_2': 'Uzin', # tow2
                 'Dzial towarowy_3': self.product.dzialtow3, # tow3
@@ -198,12 +237,15 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
     def generateLabels(self): # ANCHOR generowanie brakujących pustych cech dla produktów, aby każdy produkt miał taką samą ilość cech
 
         self.labels = [
-            'Kod producenta',
+            'Kod towaru',
             'Nazwa towaru',
             'Nazwa dodatkowa',
+            'Archiwalny',
+            'EAN',
+            'EAN domyslny',
+            'Kod producenta',
             'Jm.',
             'Opis towaru',
-            'CECHA_DOD_Dlugi_Opis',
             'Dzial towarowy_1',
             'Dzial towarowy_2',
             'Dzial towarowy_3',
@@ -247,13 +289,13 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
 
         for i, row in enumerate(self.export_queue):
             for j, col in enumerate(row):
-                sheet[f'{self.numberToExcelColId(j+1)}{i+1}'] = str(self.export_queue[i][j])
+                sheet[f'{self.numberToExcelColId(j+1)}{i+1}'] = str(self.export_queue[i][j]).strip()
 
         day = datetime.datetime.now().day
         month = datetime.datetime.now().month
         year = datetime.datetime.now().year
 
-        name = f"uzin_from_website_{day}_{month}_{year}.xlsx"
+        name = f"uzin_products_{day}_{month}_{year}.xlsx"
 
         workbook.save(name)
         workbook.close()

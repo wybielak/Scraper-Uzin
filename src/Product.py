@@ -9,7 +9,6 @@ class Product:
         self.name = ''
         self.additional_name = ''
         self.description = ''
-        self.long_description = ''
         self.photo = ''
         self.technical_card = ''
         self.dzialtow3 = ''
@@ -23,8 +22,7 @@ class Product:
         print(f"\033[37m\t\t Kod producenta: {self.size_code_list}")
         print(f"\033[37m\t\t Nazwa towaru: {self.name}")
         print(f"\033[37m\t\t Nazwa dodatkowa: {self.additional_name}")
-        print(f"\033[37m\t\t CECHA_DOD_Opis: {self.description}")
-        print(f"\033[37m\t\t CECHA_DOD_Dlugi_Opis: {len(self.long_description)}")
+        print(f"\033[37m\t\t Opis towaru: {self.description}")
         print(f"\033[37m\t\t Dzial towarowy 3: {self.dzialtow3}")
         print(f"\033[37m\t\t Dzial towarowy 4: {self.dzialtow4}")
 
