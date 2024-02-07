@@ -191,6 +191,9 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                 if self.clearPolishLetters(name_pt_tmp[5:].lower()) in self.clearPolishLetters(self.product.additional_name.lower()):
                     self.product.additional_name = self.clearPolishLetters(self.product.additional_name.lower()).replace(self.clearPolishLetters(name_pt_tmp[5:].lower()), '')
 
+                if self.clearPolishLetters(self.product.additional_name.lower()) in self.clearPolishLetters(name_pt_tmp[5:].lower()):
+                    self.product.additional_name = ''
+
                 self.queue.append({
                 'Kod towaru': f'UZIN{lst[4].strip()}', # Kod towaru
                 'Nazwa towaru': name_pt_tmp[:41], # Nazwa towaru
