@@ -202,7 +202,7 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                     self.product.additional_name = ''
 
                 self.queue.append({
-                'Kod towaru': f'UZIN{lst[4].strip()}', # Kod towaru
+                'Kod towaru': f'UZIN{lst[4].strip().zfill(6)}', # Kod towaru
                 'Nazwa towaru': name_pt_tmp[:41], # Nazwa towaru
                 'Nazwa dodatkowa': name_pt_tmp[41:] + self.product.additional_name, # Nazwa dodatkowa
                 'Archiwalny': '0',
