@@ -27,12 +27,18 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
             'Dzial towarowy_2',
             'Dzial towarowy_3',
             'Dzial towarowy_4',
-            'CECHA_DOD_Karta_techniczna',
-            'Zdjecie 1'
             ]
         
+        self.files_labels = [
+            'Kod towaru',
+            'CECHA_DOD_Karta_techniczna',
+            'Zdjecie towaru'
+        ]
+        
         self.queue = []
-        self.exportQueue = []
+        self.files_queue = []
+        self.export_queue = []
+        self.export_files_queue = []
         self.quality_labels = {}
 
         self.resetFolder()
@@ -184,6 +190,7 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
 
                 name_pt_tmp = name_pt_tmp.replace('Ø', 'fi').replace('²','2').replace('°', 'st').replace('|',' ').strip()
                 self.product.additional_name = self.product.additional_name.replace('Ø', 'fi').replace('²','2').replace('°', 'st').replace('|',' ').strip()
+                self.product.additional_name = self.product.additional_name.replace('UZIN', '').replace('Uzin', '').replace('uzin', '')
 
                 if 'UZIN' not in name_pt_tmp[:5]:
                     name_pt_tmp = f'UZIN {name_pt_tmp}'
@@ -208,12 +215,16 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                 'Dzial towarowy_2': 'Uzin', # tow2
                 'Dzial towarowy_3': self.product.dzialtow3, # tow3
                 'Dzial towarowy_4': self.product.dzialtow4, # tow4
-                'CECHA_DOD_Karta_Techniczna': self.product.technical_card, # Karta techniczna
-                'Zdjecie 1': self.product.photo, # Zdjecie
                 })
 
                 for key, val in self.product.qualities.items():
                     self.queue[-1][key] = val
+
+                self.files_queue.append({
+                    'Kod towaru': f'UZIN{lst[4].strip()}', # Kod towaru
+                    'CECHA_DOD_Karta_techniczna': self.product.technical_card, # Karta techniczna
+                    'Zdjecie towaru': self.product.photo, # Zdjecie
+                })
         
         elif len(self.product.size_code_list) == 0: # NOTE Zapis produktu jeśli znaleziono tylko jeden wariant wagowy
             self.queue.append({
@@ -230,12 +241,16 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                 'Dzial towarowy_2': 'Uzin', # tow2
                 'Dzial towarowy_3': self.product.dzialtow3, # tow3
                 'Dzial towarowy_4': self.product.dzialtow4, # tow4
-                'CECHA_DOD_Karta_Techniczna': self.product.technical_card, # Karta techniczna
-                'Zdjecie 1': self.product.photo, # Zdjecie
             })
             
             for key, val in self.product.qualities.items():
                     self.queue[-1][key] = val
+                
+            self.files_queue.append({
+                'Kod towaru': '', # Kod towaru
+                'CECHA_DOD_Karta_techniczna': self.product.technical_card, # Karta techniczna
+                'Zdjecie towaru': self.product.photo, # Zdjecie
+            })
 
     def generateLabels(self): # ANCHOR generowanie brakujących pustych cech dla produktów, aby każdy produkt miał taką samą ilość cech
 
@@ -254,14 +269,18 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
             'Dzial towarowy_3',
             'Dzial towarowy_4',
             ]
+        
+        self.files_labels = [
+            'Kod towaru',
+            'CECHA_DOD_Karta_techniczna',
+            'Zdjecie towaru'
+        ]
 
         for key, val in self.quality_labels.items():
             self.labels.append(key)
-
-        self.labels.append('CECHA_DOD_Karta_techniczna')
-        self.labels.append('Zdjecie 1')
             
         self.export_queue = [self.labels]
+        self.export_files_queue = [self.files_labels]
 
         for i, row in enumerate(self.queue):
             for label in self.labels:
@@ -274,6 +293,13 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                 tmp_row.append(row[label])
 
             self.export_queue.append(tmp_row)
+
+        for i, row in enumerate(self.files_queue):
+            tmp_row2 = []
+            for label in self.files_labels:
+                tmp_row2.append(row[label])
+
+            self.export_files_queue.append(tmp_row2)
 
     def numberToExcelColId(self, numer): # ANCHOR konwersja indexu pętli na numer kolumny w excelu
         identyfikator = ""
@@ -302,3 +328,19 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
 
         workbook.save(name)
         workbook.close()
+
+        workbook_files = openpyxl.Workbook()
+        sheet_files = workbook_files.active
+
+        for i, row in enumerate(self.export_files_queue):
+            for j, col in enumerate(row):
+                sheet_files[f'{self.numberToExcelColId(j+1)}{i+1}'] = str(self.export_files_queue[i][j]).strip()
+
+        day = datetime.datetime.now().day
+        month = datetime.datetime.now().month
+        year = datetime.datetime.now().year
+
+        name = f"uzin_files_{day}_{month}_{year}.xlsx"
+
+        workbook_files.save(name)
+        workbook_files.close()

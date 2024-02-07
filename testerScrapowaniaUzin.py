@@ -22,7 +22,7 @@ productDataDownloader.getGoodsDepartments('https://pl.uzin.com/produkty/przeglad
 productDataDownloader.getIds()
 productDataDownloader.addProductToQueue()
 productDataDownloader.product.printDetails()
-#productDataDownloader.exportToXlsx()
+productDataDownloader.exportToXlsx()
 
 browser.closeBrowser()
 
