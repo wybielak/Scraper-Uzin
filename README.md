@@ -12,6 +12,7 @@ pip install selenium
 pip install bs4
 pip install requests
 pip install openpyxl
+pip install lxml
 ```
 
 Aby uruchomić otworzyć cmd w tej lokalizacji wpisać: python main.py
