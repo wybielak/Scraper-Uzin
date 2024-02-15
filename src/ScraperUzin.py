@@ -26,6 +26,8 @@ class ScraperUzin:
             print(e)
 
     def scrapProducts(self): # ANCHOR główna funkcjonalność, przechodzenie przez wszystkie produkty we wszystkich kategoriach
+        with open('errorlogs.txt', 'w', encoding='utf-8') as errfile:
+            errfile.write('')
         try:
             for category_link in self.linkFinder.links_base:
                 for product_link in self.linkFinder.links_base[category_link]:
@@ -40,6 +42,8 @@ class ScraperUzin:
                         self.done_count += 1
                     except Exception as e:
                         print("Wystąpił problem podczas pobierania produktów! Sprawdź produkt testerem scrapowania!")
+                        with open('errorlogs.txt', 'a', encoding='utf-8') as errfile:
+                            errfile.write(f'{product_link} [] {category_link}\n')
                         print(category_link)
                         print(product_link)
                         print(e)

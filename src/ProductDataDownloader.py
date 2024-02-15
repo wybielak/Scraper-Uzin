@@ -221,7 +221,7 @@ class ProductDataDownloader: # SECTION klasa do scrapowania stron
                     self.queue[-1][key] = val
 
                 self.files_queue.append({
-                    'Kod towaru': f'UZIN{lst[4].strip()}', # Kod towaru
+                    'Kod towaru': f'UZIN{lst[4].strip().zfill(6)}', # Kod towaru
                     'CECHA_DOD_Karta_techniczna': self.product.technical_card, # Karta techniczna
                     'Zdjecie towaru': self.product.photo, # Zdjecie
                 })
